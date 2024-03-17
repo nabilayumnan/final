@@ -21,21 +21,29 @@ def combine_features_string(current):
 def get_index_using_title(title, movies):
     return movies[movies["title"] == title].index[0]    # Your get_index_using_title function code here...
 
+# def select_movie(movies, movie_title, cosine_similarity_rm, number_of_recommendations):
+#     similar_movies = list(enumerate(cosine_similarity_rm[get_index_using_title(movie_title, movies)]))
+#     sorted_similar_movies = sorted(similar_movies, key=lambda x: x[1], reverse=True)[1:]
+#     sorted_similar_movies = sorted_similar_movies[:number_of_recommendations]
+
+#     df_recommender = {"_id": [], "title": [], "description": [], "confidence": []}
+#     for i, similarity_movie in enumerate(sorted_similar_movies):
+#         index_movie, confidence = similarity_movie[0], similarity_movie[1]
+#         filter_movie = movies.iloc[index_movie]
+#         df_recommender["_id"].append(index_movie)
+#         df_recommender["title"].append(filter_movie['title'])
+#         df_recommender["description"].append(filter_movie['description'])
+#         df_recommender["confidence"].append(confidence)
+
+#     return pd.DataFrame(df_recommender)
+
 def select_movie(movies, movie_title, cosine_similarity_rm, number_of_recommendations):
     similar_movies = list(enumerate(cosine_similarity_rm[get_index_using_title(movie_title, movies)]))
     sorted_similar_movies = sorted(similar_movies, key=lambda x: x[1], reverse=True)[1:]
-    sorted_similar_movies = sorted_similar_movies[:number_of_recommendations]
+    sorted_similar_movie_indices = [movie for movie in sorted_similar_movies[:number_of_recommendations]]
 
-    df_recommender = {"_id": [], "title": [], "description": [], "confidence": []}
-    for i, similarity_movie in enumerate(sorted_similar_movies):
-        index_movie, confidence = similarity_movie[0], similarity_movie[1]
-        filter_movie = movies.iloc[index_movie]
-        df_recommender["_id"].append(index_movie)
-        df_recommender["title"].append(filter_movie['title'])
-        df_recommender["description"].append(filter_movie['description'])
-        df_recommender["confidence"].append(confidence)
+    return sorted_similar_movie_indices
 
-    return pd.DataFrame(df_recommender)
    # Your select_movie function code here...
 
 # Load data
@@ -56,10 +64,25 @@ cosine_similarity_rm = cosine_similarity(matrix_transform)
 # Streamlit app
 st.title("Movie Recommender")
 
-movie_input = st.text_input("Enter a movie title", "Fight For My Way")
+
+# Create a selectbox for movie titles
+movie_titles = movies_title['title'].tolist()
+selected_movie = st.selectbox("Select a movie title", movie_titles)
+
+
+# movie_input = st.text_input("Enter a movie title", "Fight For My Way")
 number_of_recommendations = st.slider("Number of recommendations", min_value=1, max_value=20, value=10)
 
+# if st.button("Get Recommendations"):
+#     movies_similiraty = select_movie(movies_title, movie_input, cosine_similarity_rm, number_of_recommendations)
+#     st.dataframe(movies_similiraty)
+
 if st.button("Get Recommendations"):
-    movies_similiraty = select_movie(movies_title, movie_input, cosine_similarity_rm, number_of_recommendations)
-    st.dataframe(movies_similiraty)
+    similar_movies = select_movie(movies_title, selected_movie, cosine_similarity_rm, number_of_recommendations)
+    
+    st.header("Recommended Movies:")
+    for movie in similar_movies:
+        index_movie = movie[0]
+        filter_movie = movies_title.iloc[index_movie]
+        st.write(filter_movie['title'])
 

@@ -1,0 +1,4 @@
+scikit-learn==<version>
+pandas
+numpy
+streamlit
